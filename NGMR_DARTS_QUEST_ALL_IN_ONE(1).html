@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090f1f">
+<title>NGMR DARTS QUEST</title>
+<style>
+:root{
+ --bg:#080d19;--card:#111a2d;--card2:#17243d;--line:#283857;--text:#f7fafc;
+ --muted:#9aa8bd;--cyan:#38bdf8;--green:#22c55e;--gold:#fbbf24;--red:#ef4444;--purple:#a78bfa
+}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#14213d 0,#080d19 42%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:10;padding:12px 15px;background:rgba(8,13,25,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.brand{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand h1{margin:0;font-size:17px;letter-spacing:.08em}.brand small{color:var(--muted)}
+.levelbox{min-width:120px;text-align:right}.levelbox b{font-size:14px}.xpbar{height:6px;background:#26324a;border-radius:999px;overflow:hidden;margin-top:5px}.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:0}
+main{max-width:950px;margin:auto;padding:14px 14px 95px}
+nav{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:13px}
+nav button{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:11px;padding:10px 3px;font-size:12px;font-weight:800}
+nav button.active{background:var(--cyan);color:#07101c;border-color:transparent}
+section{display:none}.show{display:block}
+.card{background:linear-gradient(180deg,var(--card),#0e1728);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:13px;box-shadow:0 12px 28px rgba(0,0,0,.2)}
+h2,h3{margin:0 0 12px}h2{font-size:19px}h3{font-size:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.games{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}
+input,textarea,select{width:100%;border:1px solid var(--line);background:#091223;color:var(--text);border-radius:10px;padding:11px;font-size:16px}
+textarea{min-height:70px;resize:vertical}.primary{width:100%;border:0;border-radius:12px;padding:14px;background:linear-gradient(90deg,var(--cyan),#67e8f9);color:#06111d;font-size:16px;font-weight:900}
+.secondary,.danger{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--card2);color:var(--text)}.danger{border-color:#7f1d1d;background:#2a1115;color:#fecaca}
+.muted{color:var(--muted);font-size:13px;line-height:1.55}.big{font-size:27px;font-weight:950}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.stat{background:var(--card2);border-radius:14px;padding:12px}.stat span{display:block;color:var(--muted);font-size:11px}
+.badges{display:flex;gap:6px;flex-wrap:wrap}.badge{font-size:12px;border-radius:999px;padding:5px 8px;background:#22314f;color:#d8e2f0}.badge.gold{background:#493a11;color:#fde68a}.badge.green{background:#113b26;color:#86efac}
+.mission{padding:11px;border:1px solid var(--line);border-radius:12px;margin:8px 0;background:#101c31}.mission.done{border-color:#166534;background:#0d2a1c}.mission-top{display:flex;justify-content:space-between;gap:8px}
+.ach-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.achievement{padding:12px;border-radius:13px;background:#0c1526;border:1px solid var(--line);opacity:.45}.achievement.unlocked{opacity:1;border-color:#7c5f15;background:#2b2410}.achievement .ico{font-size:25px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.day{aspect-ratio:1;border-radius:7px;background:#182238;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8090a8}.day.l1{background:#164e63;color:#cffafe}.day.l2{background:#166534;color:#dcfce7}.day.l3{background:#a16207;color:#fef3c7}.day.l4{background:#991b1b;color:#fee2e2}
+.row{padding:12px 0;border-bottom:1px solid var(--line)}.row:last-child{border-bottom:0}.topline{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.coach{font-size:16px;line-height:1.7;padding:14px;border-left:4px solid var(--cyan);background:#0c1729;border-radius:0 12px 12px 0}
+canvas{width:100%;height:245px;background:#091223;border-radius:12px}
+.rank{display:grid;grid-template-columns:38px 1fr auto;gap:8px;align-items:center;padding:10px;border-bottom:1px solid var(--line)}.rank.me{background:#10283a;border-radius:11px}.rank .place{font-size:20px;text-align:center}
+.gacha{padding:20px;text-align:center;background:radial-gradient(circle,#33285d,#111a2d 65%);border-radius:15px}.title-card{font-size:22px;font-weight:900;color:#fde68a;margin:12px 0}
+.video-box video{width:100%;max-height:360px;border-radius:12px;background:#000}.checklist label{font-size:14px;color:var(--text);display:flex;align-items:center;gap:8px;margin:9px 0}.checklist input{width:auto}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:700px){nav{grid-template-columns:repeat(5,1fr)}nav button{font-size:10px;padding:9px 2px}.grid2{grid-template-columns:1fr}.games{grid-template-columns:repeat(2,1fr)}.games>div:last-child{grid-column:span 2}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand">
+  <div><h1>NGMR DARTS QUEST</h1><small>COUNTUP TRAINING RPG</small></div>
+  <div class="levelbox"><b id="levelText">Lv.1 Rookie</b><div class="xpbar"><i id="xpFill"></i></div><small id="xpText">0 / 100 XP</small></div>
+ </div>
+</header>
+<main>
+<nav>
+ <button class="active" data-tab="home">ホーム</button>
+ <button data-tab="record">記録</button>
+ <button data-tab="analysis">分析</button>
+ <button data-tab="quest">クエスト</button>
+ <button data-tab="more">その他</button>
+</nav>
+
+<section id="home" class="show">
+ <div class="card">
+  <div class="topline"><div><span class="muted">現在の称号</span><div class="big" id="currentTitle">駆け出しダーツァー</div></div><div style="font-size:42px">🎯</div></div>
+  <div class="badges" style="margin-top:10px"><span class="badge green" id="streakBadge">🔥 0日連続</span><span class="badge gold" id="bestBadge">BEST —</span></div>
+ </div>
+ <div class="stats">
+  <div class="stat"><span>総ゲーム</span><div class="big" id="homeGames">0</div></div>
+  <div class="stat"><span>全体平均</span><div class="big" id="homeAvg">—</div></div>
+  <div class="stat"><span>700点以上</span><div class="big" id="home700">0</div></div>
+ </div>
+ <div class="card"><h3>🤖 チャッピーコーチ</h3><div class="coach" id="coach">最初の練習記録を入れてみよう。今日から成長データが始まるよ！</div></div>
+ <div class="card"><h3>📅 今月の練習ヒートマップ</h3><div class="calendar" id="calendar"></div><p class="muted">色が濃いほど、その日の平均スコアが高い。</p></div>
+</section>
+
+<section id="record">
+ <div class="card"><div class="grid2"><div><label>日付</label><input id="date" type="date"></div><div><label>場所</label><input id="place" placeholder="自宅 / 店舗など"></div></div></div>
+ <div class="card"><h3>ゲームスコア</h3><div class="games">
+  <div><input class="score" type="number" min="1" max="1440" placeholder="1G"></div><div><input class="score" type="number" min="1" max="1440" placeholder="2G"></div>
+  <div><input class="score" type="number" min="1" max="1440" placeholder="3G"></div><div><input class="score" type="number" min="1" max="1440" placeholder="4G"></div>
+  <div><input class="score" type="number" min="1" max="1440" placeholder="5G"></div>
+ </div><p class="muted" id="preview">点数を入れると自動集計します。</p></div>
+ <div class="card"><div class="grid2"><div><label>良かったこと</label><textarea id="good"></textarea></div><div><label>課題</label><textarea id="issue"></textarea></div></div><div style="margin-top:10px"><label>次回意識すること</label><textarea id="next"></textarea></div></div>
+ <button class="primary" id="saveBtn">練習を保存してXP獲得</button>
+</section>
+
+<section id="analysis">
+ <div class="stats">
+  <div class="stat"><span>練習日数</span><div class="big" id="days">0</div></div><div class="stat"><span>総ゲーム数</span><div class="big" id="games">0</div></div>
+  <div class="stat"><span>自己ベスト</span><div class="big" id="best">—</div></div><div class="stat"><span>全体平均</span><div class="big" id="avg">—</div></div>
+  <div class="stat"><span>600点以上率</span><div class="big" id="r600">—</div></div><div class="stat"><span>700点以上率</span><div class="big" id="r700">—</div></div>
+ </div>
+ <div class="card"><h3>📈 平均・最高スコア推移</h3><canvas id="chart"></canvas></div>
+ <div class="card"><h3>🏅 実績</h3><div class="ach-grid" id="achievements"></div></div>
+</section>
+
+<section id="quest">
+ <div class="card"><h3>🎯 今日のミッション</h3><div id="missions"></div><p class="muted">達成判定は今日保存した練習データから自動計算。</p></div>
+ <div class="card"><h3>🎰 称号ガチャ</h3><div class="gacha"><div class="muted">100 XPで1回引ける</div><div class="title-card" id="gachaResult">？？？</div><button class="primary" id="gachaBtn">称号を引く</button></div><div class="badges" id="titleCollection" style="margin-top:12px"></div></div>
+ <div class="card"><h3>👥 フレンドランキング（試作）</h3><div id="ranking"></div><p class="muted">現在は比較イメージ用の仮想プレイヤー。公開版ではログイン・サーバー連携が必要。</p></div>
+</section>
+
+<section id="more">
+ <div class="card video-box"><h3>🎥 フォーム動画チェック</h3><input id="videoInput" type="file" accept="video/*"><video id="video" controls style="display:none;margin-top:10px"></video>
+  <div class="checklist"><label><input type="checkbox"> 頭が大きく動いていない</label><label><input type="checkbox"> 肘の高さが安定している</label><label><input type="checkbox"> テイクバックが毎回同じ</label><label><input type="checkbox"> リリース後に手が狙いへ伸びている</label></div>
+  <p class="muted">この版は動画を端末内で再生してセルフチェックする機能。実際のAI姿勢解析には専用モデルとサーバー処理が必要。</p>
+ </div>
+ <div class="card"><h3>🗂️ データ管理</h3><div class="tools"><button class="secondary" id="backupBtn">JSONバックアップ</button><button class="secondary" id="csvBtn">CSV出力</button><button class="secondary" id="restoreBtn">復元</button><input id="restoreFile" type="file" accept=".json" hidden></div><p class="muted">記録はこのブラウザ内に保存。大事な記録は定期的にバックアップ推奨。</p></div>
+ <div class="card"><h3>📚 練習履歴</h3><div id="history"></div></div>
+</section>
+</main>
+
+<script>
+const KEY="ngmr_darts_quest_v2";
+const DEFAULT={records:[],xp:0,titles:["駆け出しダーツァー"],currentTitle:"駆け出しダーツァー"};
+let state=JSON.parse(localStorage.getItem(KEY)||"null")||structuredClone(DEFAULT);
+state.records=state.records||[];state.titles=state.titles||DEFAULT.titles;state.xp=state.xp||0;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+function localDate(d=new Date()){let x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)}
+$("#date").value=localDate();
+
+const levelNames=["Rookie","BULL Seeker","Score Hunter","B Flight Challenger","Sharp Shooter","A Flight Candidate","Master","Legend"];
+function levelInfo(){let lv=Math.floor(state.xp/100)+1,progress=state.xp%100;return {lv,progress,name:levelNames[Math.min(levelNames.length-1,Math.floor((lv-1)/5))]}}
+function scoreValues(){return $$(".score").map(x=>Number(x.value)).filter(n=>n>0)}
+function metrics(a){return {avg:Math.round(a.reduce((x,y)=>x+y,0)/a.length),max:Math.max(...a),min:Math.min(...a),c600:a.filter(x=>x>=600).length,c700:a.filter(x=>x>=700).length,c800:a.filter(x=>x>=800).length}}
+$$(".score").forEach(x=>x.addEventListener("input",()=>{let a=scoreValues();$("#preview").textContent=a.length?(()=>{let m=metrics(a);return `平均 ${m.avg} / 最高 ${m.max} / 最低 ${m.min} / 600+ ${m.c600}回 / 700+ ${m.c700}回 / 800+ ${m.c800}回`})():"点数を入れると自動集計します。"}));
+
+$("#saveBtn").onclick=()=>{let a=scoreValues();if(!a.length){alert("1ゲーム以上入力してね");return}let m=metrics(a),xpGain=a.length*8+m.c600*5+m.c700*10+m.c800*20;
+ state.records.unshift({id:String(Date.now()),date:$("#date").value||localDate(),place:$("#place").value.trim(),scores:a,...m,good:$("#good").value.trim(),issue:$("#issue").value.trim(),next:$("#next").value.trim()});
+ state.xp+=xpGain;persist();$$(".score").forEach(x=>x.value="");["good","issue","next"].forEach(id=>$("#"+id).value="");$("#preview").textContent=`保存完了！ +${xpGain} XP`;alert(`保存したよ！ +${xpGain} XP 🎯`)};
+
+function persist(){localStorage.setItem(KEY,JSON.stringify(state));render()}
+function allScores(){return state.records.flatMap(r=>r.scores||[])}
+function streak(){let dates=[...new Set(state.records.map(r=>r.date))].sort().reverse();if(!dates.length)return 0;let s=0,d=new Date(localDate());if(dates[0]!==localDate()){d.setDate(d.getDate()-1);if(dates[0]!==localDate(d))return 0}for(let dt of dates){if(dt===localDate(d)){s++;d.setDate(d.getDate()-1)}else break}return s}
+function coachText(){
+ let rec=state.records;if(!rec.length)return "最初の記録を入れてみよう。今日から成長データが始まるよ！";
+ let latest=rec[0],prev=rec[1],all=allScores(),recent=rec.slice(0,5).flatMap(r=>r.scores),older=rec.slice(5,10).flatMap(r=>r.scores);
+ let parts=[`今日は平均${latest.avg}点、最高${latest.max}点。`];
+ if(prev)parts.push(latest.avg>prev.avg?`前回より平均が${latest.avg-prev.avg}点アップ！`:`前回より平均が${prev.avg-latest.avg}点下がったけど、崩れ方を確認できる良いデータ。`);
+ if(recent.length&&older.length){let a=Math.round(recent.reduce((x,y)=>x+y,0)/recent.length),b=Math.round(older.reduce((x,y)=>x+y,0)/older.length);parts.push(a>b?`直近5回は、その前の5回より平均${a-b}点伸びている。`:`直近は平均が${b-a}点ほど落ち気味。投げ込みより再現性を優先しよう。`)}
+ let gamePos=[];for(let i=0;i<5;i++){let vals=rec.map(r=>r.scores[i]).filter(Boolean);gamePos.push(vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null)}
+ let valid=gamePos.map((v,i)=>({v,i})).filter(x=>x.v);if(valid.length>1){let hi=valid.reduce((a,b)=>a.v>b.v?a:b),lo=valid.reduce((a,b)=>a.v<b.v?a:b);if(hi.v-lo.v>45)parts.push(`${lo.i+1}ゲーム目が最も落ちやすい傾向。そこで一度、肩と握りの力をリセット。`)}
+ if(Math.max(...all)<700)parts.push(`初700点まであと${700-Math.max(...all)}点。`);else parts.push("700点到達力はある。次は700点を偶然ではなく複数回出す段階。");
+ return parts.join(" ");
+}
+const achievementDefs=[
+ ["first","🎯","はじめの一投","最初の記録を保存",()=>state.records.length>=1],
+ ["g600","🥉","600ハンター","600点以上を達成",()=>allScores().some(x=>x>=600)],
+ ["g700","🥈","700ブレイカー","700点以上を達成",()=>allScores().some(x=>x>=700)],
+ ["g800","🥇","800クラブ","800点以上を達成",()=>allScores().some(x=>x>=800)],
+ ["g100","💯","100ゲーム","累計100ゲーム",()=>allScores().length>=100],
+ ["streak7","🔥","炎の7日間","7日連続で練習",()=>streak()>=7],
+ ["avg600","⚡","安定の600","全体平均600点以上",()=>{let a=allScores();return a.length>=10&&a.reduce((x,y)=>x+y,0)/a.length>=600}],
+ ["legend","👑","COUNTUP LEGEND","900点以上を達成",()=>allScores().some(x=>x>=900)]
+];
+function missions(){
+ let today=state.records.filter(r=>r.date===localDate()),scores=today.flatMap(r=>r.scores),avg=scores.length?scores.reduce((a,b)=>a+b,0)/scores.length:0;
+ return [
+  {text:"3ゲーム以上プレイ",done:scores.length>=3,progress:`${Math.min(scores.length,3)}/3`,xp:20},
+  {text:"600点以上を1回",done:scores.some(x=>x>=600),progress:scores.some(x=>x>=600)?"達成":"未達成",xp:25},
+  {text:"今日の平均580点以上",done:scores.length>0&&avg>=580,progress:scores.length?`平均 ${Math.round(avg)}`:"未記録",xp:30}
+ ];
+}
+function render(){
+ let all=allScores(),li=levelInfo(),best=all.length?Math.max(...all):null,avg=all.length?Math.round(all.reduce((a,b)=>a+b,0)/all.length):null,s=streak();
+ $("#levelText").textContent=`Lv.${li.lv} ${li.name}`;$("#xpFill").style.width=li.progress+"%";$("#xpText").textContent=`${li.progress} / 100 XP`;
+ $("#currentTitle").textContent=state.currentTitle;$("#streakBadge").textContent=`🔥 ${s}日連続`;$("#bestBadge").textContent=`BEST ${best??"—"}`;
+ $("#homeGames").textContent=all.length;$("#homeAvg").textContent=avg??"—";$("#home700").textContent=all.filter(x=>x>=700).length;$("#coach").textContent=coachText();
+ $("#days").textContent=state.records.length;$("#games").textContent=all.length;$("#best").textContent=best??"—";$("#avg").textContent=avg??"—";$("#r600").textContent=all.length?Math.round(all.filter(x=>x>=600).length/all.length*100)+"%":"—";$("#r700").textContent=all.length?Math.round(all.filter(x=>x>=700).length/all.length*100)+"%":"—";
+ renderCalendar();renderAchievements();renderMissions();renderTitles();renderRanking();renderHistory();drawChart();
+}
+function renderCalendar(){
+ let box=$("#calendar"),now=new Date(),year=now.getFullYear(),month=now.getMonth(),first=new Date(year,month,1),days=new Date(year,month+1,0).getDate(),html="";
+ for(let i=0;i<first.getDay();i++)html+=`<div></div>`;
+ for(let d=1;d<=days;d++){let dt=`${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`,rs=state.records.filter(r=>r.date===dt),a=rs.flatMap(r=>r.scores),av=a.length?a.reduce((x,y)=>x+y,0)/a.length:0,cl=av>=700?"l4":av>=600?"l3":av>=500?"l2":av>0?"l1":"";html+=`<div class="day ${cl}" title="${dt}${av?` 平均${Math.round(av)}`:""}">${d}</div>`}box.innerHTML=html
+}
+function renderAchievements(){$("#achievements").innerHTML=achievementDefs.map(a=>`<div class="achievement ${a[4]()?"unlocked":""}"><div class="ico">${a[1]}</div><b>${a[2]}</b><div class="muted">${a[3]}</div></div>`).join("")}
+function renderMissions(){$("#missions").innerHTML=missions().map(m=>`<div class="mission ${m.done?"done":""}"><div class="mission-top"><b>${m.done?"✅":"⬜"} ${m.text}</b><span>+${m.xp} XP</span></div><div class="muted">${m.progress}</div></div>`).join("")}
+const titlePool=["BULL職人","安定王","700ハンター","アイアンメンタル","NGMRエース","フォーム探究者","夜投げの帝王","北海道スナイパー","COUNTUP侍","静かなる集中"];
+$("#gachaBtn").onclick=()=>{if(state.xp<100){alert("XPが100足りないよ");return}state.xp-=100;let t=titlePool[Math.floor(Math.random()*titlePool.length)];if(!state.titles.includes(t))state.titles.push(t);state.currentTitle=t;$("#gachaResult").textContent=t;persist()};
+function renderTitles(){$("#titleCollection").innerHTML=state.titles.map(t=>`<button class="secondary" onclick="setTitle('${t.replaceAll("'","")}')">${t}${t===state.currentTitle?" ✓":""}</button>`).join("")}
+window.setTitle=t=>{state.currentTitle=t;persist()};
+function renderRanking(){let all=allScores(),me=all.length?Math.round(all.reduce((a,b)=>a+b,0)/all.length):0,rows=[["RIN",642],["KAZU",618],["涼介",me],["MOMO",587],["TAKU",552]].sort((a,b)=>b[1]-a[1]);$("#ranking").innerHTML=rows.map((r,i)=>`<div class="rank ${r[0]==="涼介"?"me":""}"><div class="place">${i+1}</div><b>${r[0]}</b><span>${r[1]||"—"}点</span></div>`).join("")}
+function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function renderHistory(){$("#history").innerHTML=state.records.length?state.records.map(r=>`<div class="row"><div class="topline"><div><b>${r.date}</b> <span class="muted">${esc(r.place)}</span></div><button class="danger" onclick="removeRec('${r.id}')">削除</button></div><div class="big">平均 ${r.avg} / 最高 ${r.max}</div><div class="muted">${r.scores.join(" / ")}<br>${r.good?`良かった: ${esc(r.good)}<br>`:""}${r.issue?`課題: ${esc(r.issue)}<br>`:""}${r.next?`次回: ${esc(r.next)}`:""}</div></div>`).join(""):'<p class="muted">まだ記録がありません。</p>'}
+window.removeRec=id=>{if(confirm("削除する？")){state.records=state.records.filter(r=>r.id!==id);persist()}};
+function drawChart(){let c=$("#chart"),ctx=c.getContext("2d"),W=c.clientWidth,H=245,dpr=devicePixelRatio||1;c.width=W*dpr;c.height=H*dpr;ctx.scale(dpr,dpr);ctx.fillStyle="#091223";ctx.fillRect(0,0,W,H);let rows=[...state.records].reverse().slice(-30);if(!rows.length){ctx.fillStyle="#9aa8bd";ctx.fillText("記録が増えるとグラフが表示されます",18,30);return}let p={l:40,r:12,t:22,b:25},max=Math.max(900,...rows.map(x=>x.max)),min=200;ctx.strokeStyle="#283857";ctx.font="11px sans-serif";for(let i=0;i<5;i++){let y=p.t+(H-p.t-p.b)*i/4;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();ctx.fillStyle="#9aa8bd";ctx.fillText(Math.round(max-(max-min)*i/4),3,y+4)}function line(k,col){ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.beginPath();rows.forEach((r,i)=>{let x=p.l+(W-p.l-p.r)*(rows.length===1?.5:i/(rows.length-1)),y=p.t+(H-p.t-p.b)*(max-r[k])/(max-min);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke()}line("avg","#38bdf8");line("max","#22c55e")}
+$$("nav button").forEach(b=>b.onclick=()=>{$$("nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");$$("section").forEach(x=>x.classList.remove("show"));$("#"+b.dataset.tab).classList.add("show");setTimeout(drawChart,30)});
+$("#videoInput").onchange=e=>{let f=e.target.files[0];if(f){$("#video").src=URL.createObjectURL(f);$("#video").style.display="block"}};
+function download(name,text,type){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+$("#backupBtn").onclick=()=>download("ngmr_darts_quest_backup.json",JSON.stringify(state,null,2),"application/json");
+$("#csvBtn").onclick=()=>{let rows=[["日付","場所","スコア","平均","最高","最低","600+","700+","800+","良かった","課題","次回"]];state.records.forEach(r=>rows.push([r.date,r.place,r.scores.join("/"),r.avg,r.max,r.min,r.c600,r.c700,r.c800,r.good,r.issue,r.next]));let csv="\ufeff"+rows.map(row=>row.map(v=>`"${String(v??"").replaceAll('"','""')}"`).join(",")).join("\n");download("ngmr_darts_records.csv",csv,"text/csv")};
+$("#restoreBtn").onclick=()=>$("#restoreFile").click();$("#restoreFile").onchange=async e=>{try{let x=JSON.parse(await e.target.files[0].text());if(!x.records)throw 0;state=x;persist();alert("復元完了")}catch{alert("復元に失敗")}};
+render();
+</script>
+</body>
+</html>
