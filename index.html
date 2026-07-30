@@ -2,10 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
- <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#FFD700">
-<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090f1f">
 <title>NGMR DARTS QUEST v3</title>
 <style>
 :root{
@@ -249,20 +247,6 @@ function missions(){
   {text:"今日の平均580点以上",done:scores.length>0&&avg>=580,progress:scores.length?`平均 ${Math.round(avg)}`:"未記録",xp:30}
  ];
 }
- function showNewRecord(score){
-  const overlay=document.getElementById("recordOverlay");
-  const scoreEl=document.getElementById("recordScore");
-
-  if(!overlay||!scoreEl)return;
-
-  scoreEl.textContent=score;
-  overlay.classList.add("show");
-
-  overlay.onclick=()=>{
-    overlay.classList.remove("show");
-  };
-}
-} 
 function render(){
  let all=allScores(),li=levelInfo(),best=all.length?Math.max(...all):null,avg=all.length?Math.round(all.reduce((a,b)=>a+b,0)/all.length):null,s=streak();
  $("#levelText").textContent=`Lv.${li.lv} ${li.name}`;$("#xpFill").style.width=li.progress+"%";$("#xpText").textContent=`${li.progress} / 100 XP`;
@@ -271,7 +255,7 @@ function render(){
  $("#days").textContent=state.records.length;$("#games").textContent=all.length;$("#best").textContent=best??"—";$("#avg").textContent=avg??"—";$("#r600").textContent=all.length?Math.round(all.filter(x=>x>=600).length/all.length*100)+"%":"—";$("#r700").textContent=all.length?Math.round(all.filter(x=>x>=700).length/all.length*100)+"%":"—";
  renderCalendar();renderAchievements();renderMissions();renderTitles();renderRanking();renderHistory();drawChart();renderComparison();
 }
-}
+
 function comparisonClass(diff){
  if(diff>0)return "up";
  if(diff<0)return "down";
@@ -650,12 +634,6 @@ $("#chatInput").addEventListener("keydown",e=>{
 $$("[data-q]").forEach(b=>b.onclick=()=>sendChat(b.dataset.q));
 
 render();
- <script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js");
-  });
-}
 </script>
 </body>
 </html>
