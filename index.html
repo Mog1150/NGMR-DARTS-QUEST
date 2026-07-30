@@ -42,6 +42,17 @@ canvas{width:100%;height:280px;background:#091223;border-radius:12px}
 .legend-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
 .legend-dot.avg{background:#38bdf8}
 .legend-dot.max{background:#22c55e}
+.compare-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.compare-item{background:#0c1729;border:1px solid var(--line);border-radius:13px;padding:12px}
+.compare-item span{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+.compare-value{font-size:22px;font-weight:950}
+.compare-value.up{color:#4ade80}
+.compare-value.down{color:#f87171}
+.compare-value.same{color:#fbbf24}
+.compare-comment{margin-top:11px;padding:11px 12px;border-radius:11px;background:#10283a;line-height:1.55}
+@media(max-width:500px){
+ .compare-grid{grid-template-columns:1fr}
+}
 .rank{display:grid;grid-template-columns:38px 1fr auto;gap:8px;align-items:center;padding:10px;border-bottom:1px solid var(--line)}.rank.me{background:#10283a;border-radius:11px}.rank .place{font-size:20px;text-align:center}
 .gacha{padding:20px;text-align:center;background:radial-gradient(circle,#33285d,#111a2d 65%);border-radius:15px}.title-card{font-size:22px;font-weight:900;color:#fde68a;margin:12px 0}
 .video-box video{width:100%;max-height:360px;border-radius:12px;background:#000}.checklist label{font-size:14px;color:var(--text);display:flex;align-items:center;gap:8px;margin:9px 0}.checklist input{width:auto}
@@ -135,6 +146,37 @@ canvas{width:100%;height:280px;background:#091223;border-radius:12px}
 <span><i class="legend-dot max"></i>最高スコア</span>
 </div>
 </div>
+
+<div class="card">
+<h3>📊 前回との比較</h3>
+
+<div id="compareEmpty" class="muted">
+もう1回練習を保存すると、前回との差が表示されます。
+</div>
+
+<div id="compareContent" style="display:none">
+<div class="compare-grid">
+
+<div class="compare-item">
+<span>平均スコア</span>
+<div class="compare-value" id="compareAvg">—</div>
+</div>
+
+<div class="compare-item">
+<span>最高スコア</span>
+<div class="compare-value" id="compareMax">—</div>
+</div>
+
+<div class="compare-item">
+<span>600点以上率</span>
+<div class="compare-value" id="compare600">—</div>
+</div>
+
+</div>
+
+<div class="compare-comment" id="compareComment"></div>
+</div>
+</div>
  <div class="card"><h3>🏅 実績</h3><div class="ach-grid" id="achievements"></div></div>
 </section>
 
@@ -211,8 +253,87 @@ function render(){
  $("#currentTitle").textContent=state.currentTitle;$("#streakBadge").textContent=`🔥 ${s}日連続`;$("#bestBadge").textContent=`BEST ${best??"—"}`;
  $("#homeGames").textContent=all.length;$("#homeAvg").textContent=avg??"—";$("#home700").textContent=all.filter(x=>x>=700).length;$("#coach").textContent=coachText();
  $("#days").textContent=state.records.length;$("#games").textContent=all.length;$("#best").textContent=best??"—";$("#avg").textContent=avg??"—";$("#r600").textContent=all.length?Math.round(all.filter(x=>x>=600).length/all.length*100)+"%":"—";$("#r700").textContent=all.length?Math.round(all.filter(x=>x>=700).length/all.length*100)+"%":"—";
- renderCalendar();renderAchievements();renderMissions();renderTitles();renderRanking();renderHistory();drawChart();
+ renderCalendar();renderAchievements();renderMissions();renderTitles();renderRanking();renderHistory();drawChart();renderComparison();
 }
+
+function comparisonClass(diff){
+ if(diff>0)return "up";
+ if(diff<0)return "down";
+ return "same";
+}
+
+function comparisonText(diff,suffix=""){
+ if(diff>0)return `+${diff}${suffix} ↗`;
+ if(diff<0)return `${diff}${suffix} ↘`;
+ return `±0${suffix} →`;
+}
+
+function renderComparison(){
+ const empty=$("#compareEmpty");
+ const content=$("#compareContent");
+
+ if(!empty || !content)return;
+
+ if(state.records.length<2){
+  empty.style.display="block";
+  content.style.display="none";
+  return;
+ }
+
+ empty.style.display="none";
+ content.style.display="block";
+
+ const latest=state.records[0];
+ const previous=state.records[1];
+
+ const latest600=Math.round(
+  latest.c600/latest.scores.length*100
+ );
+
+ const previous600=Math.round(
+  previous.c600/previous.scores.length*100
+ );
+
+ const avgDiff=latest.avg-previous.avg;
+ const maxDiff=latest.max-previous.max;
+ const rateDiff=latest600-previous600;
+
+ const avgEl=$("#compareAvg");
+ const maxEl=$("#compareMax");
+ const rateEl=$("#compare600");
+
+ avgEl.textContent=comparisonText(avgDiff,"点");
+ maxEl.textContent=comparisonText(maxDiff,"点");
+ rateEl.textContent=comparisonText(rateDiff,"%");
+
+ avgEl.className="compare-value "+comparisonClass(avgDiff);
+ maxEl.className="compare-value "+comparisonClass(maxDiff);
+ rateEl.className="compare-value "+comparisonClass(rateDiff);
+
+ let positive=[avgDiff,maxDiff,rateDiff].filter(x=>x>0).length;
+ let negative=[avgDiff,maxDiff,rateDiff].filter(x=>x<0).length;
+
+ let comment="";
+
+ if(positive===3){
+  comment="🎉 全項目アップ！かなり良い練習だったね。";
+ }else if(positive>=2){
+  comment="📈 前回より成長している項目が多いよ！";
+ }else if(avgDiff>0){
+  comment="👍 平均点が伸びている。安定感が上がってきたね。";
+ }else if(maxDiff>0){
+  comment="🔥 最高点は伸びている。爆発力は上がっているよ。";
+ }else if(rateDiff>0){
+  comment="🎯 600点以上率がアップ。安定感が改善しているね。";
+ }else if(negative===3){
+  comment="無理に取り返さなくて大丈夫。次回はフォームとリズム重視でいこう。";
+ }else{
+  comment="大きな変化はなし。安定して記録を積み重ねていこう。";
+ }
+
+ $("#compareComment").textContent=comment;
+}
+
 function renderCalendar(){
  let box=$("#calendar"),now=new Date(),year=now.getFullYear(),month=now.getMonth(),first=new Date(year,month,1),days=new Date(year,month+1,0).getDate(),html="";
  for(let i=0;i<first.getDay();i++)html+=`<div></div>`;
