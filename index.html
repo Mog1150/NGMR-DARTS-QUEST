@@ -34,7 +34,14 @@ textarea{min-height:70px;resize:vertical}.primary{width:100%;border:0;border-rad
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.day{aspect-ratio:1;border-radius:7px;background:#182238;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8090a8}.day.l1{background:#164e63;color:#cffafe}.day.l2{background:#166534;color:#dcfce7}.day.l3{background:#a16207;color:#fef3c7}.day.l4{background:#991b1b;color:#fee2e2}
 .row{padding:12px 0;border-bottom:1px solid var(--line)}.row:last-child{border-bottom:0}.topline{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .coach{font-size:16px;line-height:1.7;padding:14px;border-left:4px solid var(--cyan);background:#0c1729;border-radius:0 12px 12px 0}
-canvas{width:100%;height:245px;background:#091223;border-radius:12px}
+canvas{width:100%;height:280px;background:#091223;border-radius:12px}
+.chart-tools{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.chart-tools button{border:1px solid var(--line);background:var(--card2);color:var(--muted);border-radius:999px;padding:7px 11px;font-weight:800}
+.chart-tools button.active{background:var(--cyan);color:#06111d;border-color:transparent}
+.chart-legend{display:flex;gap:15px;align-items:center;margin-top:9px;color:var(--muted);font-size:12px}
+.legend-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.legend-dot.avg{background:#38bdf8}
+.legend-dot.max{background:#22c55e}
 .rank{display:grid;grid-template-columns:38px 1fr auto;gap:8px;align-items:center;padding:10px;border-bottom:1px solid var(--line)}.rank.me{background:#10283a;border-radius:11px}.rank .place{font-size:20px;text-align:center}
 .gacha{padding:20px;text-align:center;background:radial-gradient(circle,#33285d,#111a2d 65%);border-radius:15px}.title-card{font-size:22px;font-weight:900;color:#fde68a;margin:12px 0}
 .video-box video{width:100%;max-height:360px;border-radius:12px;background:#000}.checklist label{font-size:14px;color:var(--text);display:flex;align-items:center;gap:8px;margin:9px 0}.checklist input{width:auto}
@@ -112,7 +119,22 @@ canvas{width:100%;height:245px;background:#091223;border-radius:12px}
   <div class="stat"><span>自己ベスト</span><div class="big" id="best">—</div></div><div class="stat"><span>全体平均</span><div class="big" id="avg">—</div></div>
   <div class="stat"><span>600点以上率</span><div class="big" id="r600">—</div></div><div class="stat"><span>700点以上率</span><div class="big" id="r700">—</div></div>
  </div>
- <div class="card"><h3>📈 平均・最高スコア推移</h3><canvas id="chart"></canvas></div>
+ <div class="card">
+<h3>📈 平均・最高スコア推移</h3>
+
+<div class="chart-tools">
+<button class="active" data-chart-range="10">直近10回</button>
+<button data-chart-range="30">直近30回</button>
+<button data-chart-range="all">全部</button>
+</div>
+
+<canvas id="chart"></canvas>
+
+<div class="chart-legend">
+<span><i class="legend-dot avg"></i>平均スコア</span>
+<span><i class="legend-dot max"></i>最高スコア</span>
+</div>
+</div>
  <div class="card"><h3>🏅 実績</h3><div class="ach-grid" id="achievements"></div></div>
 </section>
 
@@ -206,7 +228,193 @@ function renderRanking(){let all=allScores(),me=all.length?Math.round(all.reduce
 function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function renderHistory(){$("#history").innerHTML=state.records.length?state.records.map(r=>`<div class="row"><div class="topline"><div><b>${r.date}</b> <span class="muted">${esc(r.place)}</span></div><button class="danger" onclick="removeRec('${r.id}')">削除</button></div><div class="big">平均 ${r.avg} / 最高 ${r.max}</div><div class="muted">${r.scores.join(" / ")}<br>${r.good?`良かった: ${esc(r.good)}<br>`:""}${r.issue?`課題: ${esc(r.issue)}<br>`:""}${r.next?`次回: ${esc(r.next)}`:""}</div></div>`).join(""):'<p class="muted">まだ記録がありません。</p>'}
 window.removeRec=id=>{if(confirm("削除する？")){state.records=state.records.filter(r=>r.id!==id);persist()}};
-function drawChart(){let c=$("#chart"),ctx=c.getContext("2d"),W=c.clientWidth,H=245,dpr=devicePixelRatio||1;c.width=W*dpr;c.height=H*dpr;ctx.scale(dpr,dpr);ctx.fillStyle="#091223";ctx.fillRect(0,0,W,H);let rows=[...state.records].reverse().slice(-30);if(!rows.length){ctx.fillStyle="#9aa8bd";ctx.fillText("記録が増えるとグラフが表示されます",18,30);return}let p={l:40,r:12,t:22,b:25},max=Math.max(900,...rows.map(x=>x.max)),min=200;ctx.strokeStyle="#283857";ctx.font="11px sans-serif";for(let i=0;i<5;i++){let y=p.t+(H-p.t-p.b)*i/4;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();ctx.fillStyle="#9aa8bd";ctx.fillText(Math.round(max-(max-min)*i/4),3,y+4)}function line(k,col){ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.beginPath();rows.forEach((r,i)=>{let x=p.l+(W-p.l-p.r)*(rows.length===1?.5:i/(rows.length-1)),y=p.t+(H-p.t-p.b)*(max-r[k])/(max-min);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke()}line("avg","#38bdf8");line("max","#22c55e")}
+
+let chartRange = 10;
+
+function drawChart(){
+ const c = $("#chart");
+ if(!c) return;
+
+ const ctx = c.getContext("2d");
+ const W = Math.max(c.clientWidth,280);
+ const H = 280;
+ const dpr = window.devicePixelRatio || 1;
+
+ c.width = W*dpr;
+ c.height = H*dpr;
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+
+ ctx.fillStyle = "#091223";
+ ctx.fillRect(0,0,W,H);
+
+ let rows = [...state.records].reverse();
+
+ if(chartRange !== "all"){
+  rows = rows.slice(-Number(chartRange));
+ }
+
+ if(!rows.length){
+  ctx.fillStyle = "#9aa8bd";
+  ctx.font = "14px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("記録が増えるとグラフが表示されます",W/2,H/2);
+  return;
+ }
+
+ const values = rows.flatMap(r=>[Number(r.avg),Number(r.max)]).filter(Number.isFinite);
+ let minScore = Math.floor((Math.min(...values)-60)/50)*50;
+ let maxScore = Math.ceil((Math.max(...values)+60)/50)*50;
+
+ minScore = Math.max(0,minScore);
+
+ if(maxScore-minScore < 200){
+  maxScore = minScore+200;
+ }
+
+ const p = {l:45,r:18,t:25,b:42};
+ const graphW = W-p.l-p.r;
+ const graphH = H-p.t-p.b;
+
+ const xAt = i =>
+  rows.length === 1
+   ? p.l+graphW/2
+   : p.l+graphW*(i/(rows.length-1));
+
+ const yAt = value =>
+  p.t+graphH*((maxScore-value)/(maxScore-minScore));
+
+ // 横グリッド・点数ラベル
+ ctx.font = "11px sans-serif";
+ ctx.textAlign = "right";
+ ctx.textBaseline = "middle";
+
+ for(let i=0;i<=4;i++){
+  const y = p.t+graphH*(i/4);
+  const score = Math.round(maxScore-(maxScore-minScore)*(i/4));
+
+  ctx.strokeStyle = "#283857";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(p.l,y);
+  ctx.lineTo(W-p.r,y);
+  ctx.stroke();
+
+  ctx.fillStyle = "#9aa8bd";
+  ctx.fillText(score,p.l-7,y);
+ }
+
+ // 600点・700点の基準線
+ [
+  {score:600,color:"#a16207",label:"600"},
+  {score:700,color:"#991b1b",label:"700"}
+ ].forEach(line=>{
+  if(line.score<minScore || line.score>maxScore) return;
+
+  const y = yAt(line.score);
+  ctx.save();
+  ctx.setLineDash([5,5]);
+  ctx.strokeStyle = line.color;
+  ctx.beginPath();
+  ctx.moveTo(p.l,y);
+  ctx.lineTo(W-p.r,y);
+  ctx.stroke();
+  ctx.restore();
+ });
+
+ function drawSeries(key,color){
+  const points = rows.map((r,i)=>({
+   x:xAt(i),
+   y:yAt(Number(r[key])),
+   value:Number(r[key])
+  }));
+
+  if(points.length>1){
+   ctx.strokeStyle = color;
+   ctx.lineWidth = 3;
+   ctx.lineJoin = "round";
+   ctx.lineCap = "round";
+   ctx.beginPath();
+
+   points.forEach((pt,i)=>{
+    if(i===0) ctx.moveTo(pt.x,pt.y);
+    else ctx.lineTo(pt.x,pt.y);
+   });
+
+   ctx.stroke();
+  }
+
+  // 記録が1件でも丸い点を表示
+  points.forEach(pt=>{
+   ctx.fillStyle = color;
+   ctx.beginPath();
+   ctx.arc(pt.x,pt.y,4.5,0,Math.PI*2);
+   ctx.fill();
+
+   ctx.strokeStyle = "#f7fafc";
+   ctx.lineWidth = 1.5;
+   ctx.stroke();
+  });
+
+  return points;
+ }
+
+ const avgPoints = drawSeries("avg","#38bdf8");
+ const maxPoints = drawSeries("max","#22c55e");
+
+ // 横軸の日付
+ ctx.fillStyle = "#9aa8bd";
+ ctx.font = "10px sans-serif";
+ ctx.textAlign = "center";
+ ctx.textBaseline = "top";
+
+ const labelCount = Math.min(5,rows.length);
+ const labelIndexes = new Set();
+
+ for(let i=0;i<labelCount;i++){
+  labelIndexes.add(
+   labelCount===1
+    ? 0
+    : Math.round(i*(rows.length-1)/(labelCount-1))
+  );
+ }
+
+ labelIndexes.forEach(i=>{
+  const date = String(rows[i].date || "");
+  const label = date.length>=10 ? date.slice(5).replace("-","/") : date;
+  ctx.fillText(label,xAt(i),H-p.b+12);
+ });
+
+ // 最新データの数値
+ const lastAvg = avgPoints.at(-1);
+ const lastMax = maxPoints.at(-1);
+
+ ctx.font = "bold 12px sans-serif";
+ ctx.textAlign = "center";
+ ctx.textBaseline = "bottom";
+
+ ctx.fillStyle = "#38bdf8";
+ ctx.fillText(lastAvg.value,lastAvg.x,lastAvg.y-8);
+
+ ctx.fillStyle = "#22c55e";
+ ctx.fillText(lastMax.value,lastMax.x,lastMax.y-8);
+}
+
+$$("[data-chart-range]").forEach(button=>{
+ button.onclick = ()=>{
+  chartRange = button.dataset.chartRange;
+
+  $$("[data-chart-range]").forEach(x=>x.classList.remove("active"));
+  button.classList.add("active");
+
+  drawChart();
+ };
+});
+
+window.addEventListener("resize",()=>{
+ clearTimeout(window.ngmrChartResize);
+ window.ngmrChartResize = setTimeout(drawChart,120);
+});
+
 $$("nav button").forEach(b=>b.onclick=()=>{$$("nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");$$("section").forEach(x=>x.classList.remove("show"));$("#"+b.dataset.tab).classList.add("show");setTimeout(drawChart,30)});
 $("#videoInput").onchange=e=>{let f=e.target.files[0];if(f){$("#video").src=URL.createObjectURL(f);$("#video").style.display="block"}};
 function download(name,text,type){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
