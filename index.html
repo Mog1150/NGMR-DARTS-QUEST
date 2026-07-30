@@ -636,6 +636,13 @@ $("#chatInput").addEventListener("keydown",e=>{
 $$("[data-q]").forEach(b=>b.onclick=()=>sendChat(b.dataset.q));
 
 render();
+ <script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js");
+  });
+}
+</script>
 </script>
 </body>
 </html>
