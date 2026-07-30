@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090f1f">
-<title>NGMR DARTS QUEST　v1</title>
+<title>NGMR DARTS QUEST v3</title>
 <style>
 :root{
  --bg:#080d19;--card:#111a2d;--card2:#17243d;--line:#283857;--text:#f7fafc;
@@ -13,7 +13,7 @@
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#14213d 0,#080d19 42%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
 header{position:sticky;top:0;z-index:10;padding:12px 15px;background:rgba(8,13,25,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 .brand{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand h1{margin:0;font-size:17px;letter-spacing:.08em}.brand small{color:var(--muted)}
-.levelbox{min-w、idth:120px;text-align:right}.levelbox b{font-size:14px}.xpbar{height:6px;background:#26324a;border-radius:999px;overflow:hidden;margin-top:5px}.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:0}
+.levelbox{min-width:120px;text-align:right}.levelbox b{font-size:14px}.xpbar{height:6px;background:#26324a;border-radius:999px;overflow:hidden;margin-top:5px}.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:0}
 main{max-width:950px;margin:auto;padding:14px 14px 95px}
 nav{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:13px}
 nav button{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:11px;padding:10px 3px;font-size:12px;font-weight:800}
@@ -39,6 +39,14 @@ canvas{width:100%;height:245px;background:#091223;border-radius:12px}
 .gacha{padding:20px;text-align:center;background:radial-gradient(circle,#33285d,#111a2d 65%);border-radius:15px}.title-card{font-size:22px;font-weight:900;color:#fde68a;margin:12px 0}
 .video-box video{width:100%;max-height:360px;border-radius:12px;background:#000}.checklist label{font-size:14px;color:var(--text);display:flex;align-items:center;gap:8px;margin:9px 0}.checklist input{width:auto}
 .tools{display:flex;gap:8px;flex-wrap:wrap}
+.chat-log{max-height:330px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;margin-bottom:11px}
+.chat-msg{max-width:88%;padding:10px 12px;border-radius:13px;line-height:1.55;font-size:14px;white-space:pre-wrap}
+.chat-msg.bot{align-self:flex-start;background:#0c1729;border:1px solid var(--line)}
+.chat-msg.user{align-self:flex-end;background:#164e63;color:#cffafe}
+.chat-input{display:grid;grid-template-columns:1fr auto;gap:8px}
+.chat-input button{border:0;border-radius:10px;padding:0 15px;background:var(--cyan);color:#06111d;font-weight:900}
+.quick-chat{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.quick-chat button{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:999px;padding:7px 10px;font-size:12px}
 @media(max-width:700px){nav{grid-template-columns:repeat(5,1fr)}nav button{font-size:10px;padding:9px 2px}.grid2{grid-template-columns:1fr}.games{grid-template-columns:repeat(2,1fr)}.games>div:last-child{grid-column:span 2}.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -68,7 +76,22 @@ canvas{width:100%;height:245px;background:#091223;border-radius:12px}
   <div class="stat"><span>全体平均</span><div class="big" id="homeAvg">—</div></div>
   <div class="stat"><span>700点以上</span><div class="big" id="home700">0</div></div>
  </div>
- <div class="card"><h3>🤖 チャッピーコーチ</h3><div class="coach" id="coach">最初の練習記録を入れてみよう。今日から成長データが始まるよ！</div></div>
+ <div class="card">
+<h3>🤖 チャッピーコーチ</h3>
+<div class="quick-chat">
+<button data-q="今日の練習どうだった？">今日の分析</button>
+<button data-q="今の弱点は？">弱点</button>
+<button data-q="700点を出すには？">700点対策</button>
+<button data-q="次の練習メニューは？">練習メニュー</button>
+</div>
+<div class="chat-log" id="chatLog">
+<div class="chat-msg bot" id="coach">最初の練習記録を入れてみよう。今日から成長データが始まるよ！</div>
+</div>
+<div class="chat-input">
+<input id="chatInput" placeholder="チャッピーに質問する">
+<button id="chatSend">送信</button>
+</div>
+</div>
  <div class="card"><h3>📅 今月の練習ヒートマップ</h3><div class="calendar" id="calendar"></div><p class="muted">色が濃いほど、その日の平均スコアが高い。</p></div>
 </section>
 
@@ -190,6 +213,97 @@ function download(name,text,type){let a=document.createElement("a");a.href=URL.c
 $("#backupBtn").onclick=()=>download("ngmr_darts_quest_backup.json",JSON.stringify(state,null,2),"application/json");
 $("#csvBtn").onclick=()=>{let rows=[["日付","場所","スコア","平均","最高","最低","600+","700+","800+","良かった","課題","次回"]];state.records.forEach(r=>rows.push([r.date,r.place,r.scores.join("/"),r.avg,r.max,r.min,r.c600,r.c700,r.c800,r.good,r.issue,r.next]));let csv="\ufeff"+rows.map(row=>row.map(v=>`"${String(v??"").replaceAll('"','""')}"`).join(",")).join("\n");download("ngmr_darts_records.csv",csv,"text/csv")};
 $("#restoreBtn").onclick=()=>$("#restoreFile").click();$("#restoreFile").onchange=async e=>{try{let x=JSON.parse(await e.target.files[0].text());if(!x.records)throw 0;state=x;persist();alert("復元完了")}catch{alert("復元に失敗")}};
+
+function addChatMessage(text,type){
+ const log=$("#chatLog");
+ const div=document.createElement("div");
+ div.className="chat-msg "+type;
+ div.textContent=text;
+ log.appendChild(div);
+ log.scrollTop=log.scrollHeight;
+}
+
+function coachReply(question){
+ const q=String(question||"").trim();
+ const rec=state.records;
+ const all=allScores();
+
+ if(!rec.length){
+  return "まだ練習記録がないよ。まず「記録」からCOUNT-UPを保存してみよう！";
+ }
+
+ const latest=rec[0];
+ const previous=rec[1];
+ const overall=Math.round(all.reduce((a,b)=>a+b,0)/all.length);
+ const best=Math.max(...all);
+ const over600=all.filter(x=>x>=600).length;
+ const over700=all.filter(x=>x>=700).length;
+ const rate600=Math.round(over600/all.length*100);
+
+ if(q.includes("今日") || q.includes("分析") || q.includes("どう")){
+  let text=`最新の練習は平均${latest.avg}点、最高${latest.max}点、最低${latest.min}点。600点以上率は${Math.round(latest.c600/latest.scores.length*100)}％だよ。`;
+  if(previous){
+   const diff=latest.avg-previous.avg;
+   text+=diff>0
+    ? ` 前回より平均が${diff}点アップ！`
+    : diff<0
+    ? ` 前回より平均が${Math.abs(diff)}点ダウン。力みより再現性を優先しよう。`
+    : " 前回と同じ平均で安定しているね。";
+  }
+  return text;
+ }
+
+ if(q.includes("弱点") || q.includes("課題")){
+  const spread=latest.max-latest.min;
+  if(spread>=120){
+   return `最新5ゲームの最高と最低の差が${spread}点ある。今の最大の課題は爆発力より安定感。外れた後に投げ急がず、毎回セット位置を作り直そう。`;
+  }
+  if(rate600<50){
+   return `全体の600点以上率は${rate600}％。まずは高得点より、500点台後半を崩さず出すことを目標にしよう。`;
+  }
+  return `大きな崩れは少ないよ。全体平均${overall}点なので、次は苦手なゲーム順や疲れたときのフォームを記録すると、弱点がさらに分かりやすくなる。`;
+ }
+
+ if(q.includes("700")){
+  if(best>=700){
+   return `自己ベストは${best}点で、700点を出す力はもうある。次の目標は「5ゲーム中1回700点」ではなく「平均600点以上を維持しながら700点を出す」こと。`;
+  }
+  return `自己ベスト${best}点だから、700点まであと${700-best}点。1ラウンド平均で約${Math.ceil((700-best)/8)}点上乗せすれば届く。BULLを追いすぎず、外した次の1投を丁寧に戻そう。`;
+ }
+
+ if(q.includes("メニュー") || q.includes("練習")){
+  if(over700===0){
+   return "おすすめは①BULL30投、②COUNT-UP3ゲーム、③一番低かったゲームの原因を1行メモ。量より、同じセットアップを繰り返すことを優先しよう。";
+  }
+  return "おすすめは①BULL30投、②COUNT-UP5ゲーム、③600点未満だったゲームだけ振り返る。最後にフォーム動画を後ろから1本撮ろう。";
+ }
+
+ if(q.includes("平均")){
+  return `現在の全体平均は${overall}点。総ゲーム数は${all.length}ゲーム、600点以上は${over600}回、700点以上は${over700}回だよ。`;
+ }
+
+ if(q.includes("ベスト") || q.includes("最高")){
+  return `現在の自己ベストは${best}点。最新練習の最高は${latest.max}点だよ。`;
+ }
+
+ return `今の記録は全体平均${overall}点、自己ベスト${best}点、600点以上率${rate600}％。質問は「今日の分析」「弱点」「700点対策」「練習メニュー」みたいに聞いてみてね。`;
+}
+
+function sendChat(question){
+ const input=$("#chatInput");
+ const q=(question||input.value).trim();
+ if(!q)return;
+ addChatMessage(q,"user");
+ input.value="";
+ setTimeout(()=>addChatMessage(coachReply(q),"bot"),250);
+}
+
+$("#chatSend").onclick=()=>sendChat();
+$("#chatInput").addEventListener("keydown",e=>{
+ if(e.key==="Enter")sendChat();
+});
+$$("[data-q]").forEach(b=>b.onclick=()=>sendChat(b.dataset.q));
+
 render();
 </script>
 </body>
