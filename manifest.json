@@ -1,12 +1,10 @@
 {
   "name": "NGMR DARTS QUEST",
   "short_name": "NGMR",
-  "description": "NGMR DARTS QUEST - ダーツ練習記録アプリ",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#121212",
+  "background_color": "#111111",
   "theme_color": "#FFD700",
-  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
@@ -20,4 +18,3 @@
     }
   ]
 }
-
