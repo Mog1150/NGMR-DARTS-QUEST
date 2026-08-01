@@ -350,7 +350,7 @@ function renderTitles(){$("#titleCollection").innerHTML=state.titles.map(t=>`<bu
 window.setTitle=t=>{state.currentTitle=t;persist()};
 function renderRanking(){let all=allScores(),me=all.length?Math.round(all.reduce((a,b)=>a+b,0)/all.length):0,rows=[["RIN",642],["KAZU",618],["涼介",me],["MOMO",587],["TAKU",552]].sort((a,b)=>b[1]-a[1]);$("#ranking").innerHTML=rows.map((r,i)=>`<div class="rank ${r[0]==="涼介"?"me":""}"><div class="place">${i+1}</div><b>${r[0]}</b><span>${r[1]||"—"}点</span></div>`).join("")}
 function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-function renderHistory(){$("#history").innerHTML=state.records.length?state.records.map(r=>`<div class="row"><div class="topline"><div><b>${r.date}</b> <span class="muted">${esc(r.place)}</span></div><button class="danger" onclick="removeRec('${r.id}')">削除</button></div><div class="big">平均 ${r.avg} / 最高 ${r.max}</div><div class="muted">${r.scores.join(" / ")}<br>${r.good?`良かった: ${esc(r.good)}<br>`:""}${r.issue?`課題: ${esc(r.issue)}<br>`:""}${r.next?`次回: ${esc(r.next)}`:""}</div></div>`).join(""):'<p class="muted">まだ記録がありません。</p>'}
+function renderHistory(){$("#history").innerHTML=state.records.length?[...state.records].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>`<div class="row"><div class="topline"><div><b>${r.date}</b> <span class="muted">${esc(r.place)}</span></div><button class="danger" onclick="removeRec('${r.id}')">削除</button></div><div class="big">平均 ${r.avg} / 最高 ${r.max}</div><div class="muted">${r.scores.join(" / ")}<br>${r.good?`良かった: ${esc(r.good)}<br>`:""}${r.issue?`課題: ${esc(r.issue)}<br>`:""}${r.next?`次回: ${esc(r.next)}`:""}</div></div>`).join(""):'<p class="muted">まだ記録がありません。</p>'}
 window.removeRec=id=>{if(confirm("削除する？")){state.records=state.records.filter(r=>r.id!==id);persist()}};
 
 let chartRange = 10;
@@ -371,7 +371,7 @@ function drawChart(){
  ctx.fillStyle = "#091223";
  ctx.fillRect(0,0,W,H);
 
- let rows = [...state.records].reverse();
+ let rows = [...state.records].sort((a,b)=>a.date.localeCompare(b.date));
 
  if(chartRange !== "all"){
   rows = rows.slice(-Number(chartRange));
